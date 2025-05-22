@@ -15,14 +15,15 @@ const recipientAddress = '0x2D13D6F418696D89Cfa8E34dD13AfC8DAA5b0017';
 
 // Konfigurasi jaringan Zenchain
 const zenchainNetwork = {
-  chainId: '0x20F8', // Chain ID 8408 dalam hex (0x20F8)
+  chainId: '0x20F8', // Chain ID 8408 dalam hex
   chainName: 'Zenchain Testnet',
   nativeCurrency: {
     name: 'ZTC',
     symbol: 'ZTC',
     decimals: 18,
   },
-  rpcUrls: ['https://zenchain-testnet.api.onfinality.io/public'], // Menggunakan HTTPS
+  rpcUrls: ['https://zenchain-testnet.api.onfinality.io/public'], // HTTPS RPC URL
+  blockExplorerUrls: ['https://explorer.zenchain.network'], // Opsional, untuk explorer
 };
 
 // Hubungkan ke MetaMask
@@ -36,12 +37,25 @@ connectButton.addEventListener('click', async () => {
       walletInfo.style.display = 'block';
       sendButton.disabled = false;
 
-      // Tambahkan jaringan Zenchain jika belum ada
-      await window.ethereum.request({
-        method: 'wallet_addEthereumChain',
-        params: [zenchainNetwork],
-      });
+      // Tambahkan atau alihkan ke jaringan Zenchain
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x20F8' }],
+        });
+      } catch (switchError) {
+        // Jika jaringan belum ada, tambahkan
+        if (switchError.code === 4902) {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [zenchainNetwork],
+          });
+        } else {
+          throw switchError;
+        }
+      }
     } catch (error) {
+      console.error('Error connecting to MetaMask:', error);
       alert('Gagal menghubungkan MetaMask: ' + error.message);
     }
   } else {
@@ -74,6 +88,7 @@ sendButton.addEventListener('click', async () => {
     txHash.textContent = txHashValue;
     txInfo.style.display = 'block';
   } catch (error) {
+    console.error('Transaction error:', error);
     alert('Transaksi gagal: ' + error.message);
   }
 });
@@ -82,5 +97,8 @@ sendButton.addEventListener('click', async () => {
 copyButton.addEventListener('click', () => {
   navigator.clipboard.writeText(txHash.textContent).then(() => {
     alert('Transaction Hash disalin!');
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+    alert('Gagal menyalin Transaction Hash.');
   });
 });
