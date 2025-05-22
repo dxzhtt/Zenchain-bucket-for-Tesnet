@@ -22,8 +22,8 @@ const zenchainNetwork = {
     symbol: 'ZTC',
     decimals: 18,
   },
-  rpcUrls: ['https://zenchain-testnet.api.onfinality.io/public'], // HTTPS RPC URL
-  blockExplorerUrls: ['https://explorer.zenchain.network'], // Opsional, untuk explorer
+  rpcUrls: ['https://zenchain-testnet.api.onfinality.io/public'],
+  blockExplorerUrls: ['https://explorer.zenchain.network'],
 };
 
 // Hubungkan ke MetaMask
@@ -31,21 +31,29 @@ connectButton.addEventListener('click', async () => {
   if (window.ethereum) {
     try {
       web3 = new Web3(window.ethereum);
+      
+      // Periksa Chain ID dari RPC
+      const networkId = await web3.eth.net.getId();
+      console.log('Chain ID dari RPC:', networkId.toString(16));
+
+      // Minta akun MetaMask
       await window.ethereum.request({ method: 'eth_requestAccounts' });
       accounts = await web3.eth.getAccounts();
       walletAddress.textContent = accounts[0];
       walletInfo.style.display = 'block';
       sendButton.disabled = false;
 
-      // Tambahkan atau alihkan ke jaringan Zenchain
+      // Coba beralih ke jaringan Zenchain
       try {
         await window.ethereum.request({
           method: 'wallet_switchEthereumChain',
           params: [{ chainId: '0x20F8' }],
         });
+        console.log('Berhasil beralih ke Zenchain Testnet');
       } catch (switchError) {
         // Jika jaringan belum ada, tambahkan
         if (switchError.code === 4902) {
+          console.log('Jaringan belum ada, menambahkan Zenchain Testnet');
           await window.ethereum.request({
             method: 'wallet_addEthereumChain',
             params: [zenchainNetwork],
