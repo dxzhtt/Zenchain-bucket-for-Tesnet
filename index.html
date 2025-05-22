@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zenchain Simple DApp</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Zenchain DApp</h1>
+    <p>Kirim ZTC dan salin Transaction Hash!</p>
+    <button id="connectButton">Hubungkan MetaMask</button>
+    <div id="walletInfo" style="display: none;">
+      <p>Wallet: <span id="walletAddress"></span></p>
+    </div>
+    <div class="input-group">
+      <input type="number" id="amount" placeholder="Jumlah ZTC" step="0.01">
+      <button id="sendButton" disabled>Kirim ZTC</button>
+    </div>
+    <div id="txInfo" style="display: none;">
+      <p>Transaction Hash: <span id="txHash"></span></p>
+      <button id="copyButton">Copy Tx Hash</button>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.7.4/dist/web3.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
