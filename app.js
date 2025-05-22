@@ -22,7 +22,7 @@ const zenchainNetwork = {
     symbol: 'ZTC',
     decimals: 18,
   },
-  rpcUrls: ['wss://zenchain-testnet.api.onfinality.io/public-ws'],
+  rpcUrls: ['https://zenchain-testnet.api.onfinality.io/public'], // Menggunakan HTTPS
 };
 
 // Hubungkan ke MetaMask
