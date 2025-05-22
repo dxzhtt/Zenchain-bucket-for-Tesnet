@@ -15,14 +15,14 @@ const recipientAddress = '0x2D13D6F418696D89Cfa8E34dD13AfC8DAA5b0017';
 
 // Konfigurasi jaringan Zenchain
 const zenchainNetwork = {
-  chainId: '0x20F8', // Chain ID 8408 dalam hex
+  chainId: '0x2108', // Chain ID 8440 dalam hex
   chainName: 'Zenchain Testnet',
   nativeCurrency: {
     name: 'ZTC',
     symbol: 'ZTC',
     decimals: 18,
   },
-  rpcUrls: ['https://zenchain-testnet.api.onfinality.io/public'],
+  rpcUrls: ['https://zenchain-testnet.api.onfinality.io/public'], // RPC utama
   blockExplorerUrls: ['https://explorer.zenchain.network'],
 };
 
@@ -31,10 +31,43 @@ connectButton.addEventListener('click', async () => {
   if (window.ethereum) {
     try {
       web3 = new Web3(window.ethereum);
-      
-      // Periksa Chain ID dari RPC
-      const networkId = await web3.eth.net.getId();
-      console.log('Chain ID dari RPC:', networkId.toString(16));
+
+      // Periksa Chain ID saat ini
+      const currentChainId = await web3.eth.getChainId();
+      console.log('Current Chain ID:', currentChainId.toString(16));
+
+      // Jika sudah di Zenchain Testnet (8440), lanjutkan
+      if (currentChainId === parseInt('0x2108', 16)) {
+        console.log('Sudah di jaringan Zenchain Testnet');
+      } else {
+        // Coba beralih ke Zenchain Testnet
+        try {
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x2108' }],
+          });
+          console.log('Berhasil beralih ke Zenchain Testnet');
+        } catch (switchError) {
+          // Jika jaringan belum ada atau error lainnya
+          if (switchError.code === 4902 || switchError.code === -32603) {
+            console.log('Jaringan belum ada, menambahkan Zenchain Testnet');
+            try {
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [zenchainNetwork],
+              });
+            } catch (addError) {
+              console.error('Gagal menambahkan jaringan:', addError);
+              alert('Gagal menambahkan jaringan: ' + addError.message);
+              return;
+            }
+          } else {
+            console.error('Gagal beralih jaringan:', switchError);
+            alert('Gagal beralih jaringan: ' + switchError.message);
+            return;
+          }
+        }
+      }
 
       // Minta akun MetaMask
       await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -42,26 +75,6 @@ connectButton.addEventListener('click', async () => {
       walletAddress.textContent = accounts[0];
       walletInfo.style.display = 'block';
       sendButton.disabled = false;
-
-      // Coba beralih ke jaringan Zenchain
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x20F8' }],
-        });
-        console.log('Berhasil beralih ke Zenchain Testnet');
-      } catch (switchError) {
-        // Jika jaringan belum ada, tambahkan
-        if (switchError.code === 4902) {
-          console.log('Jaringan belum ada, menambahkan Zenchain Testnet');
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [zenchainNetwork],
-          });
-        } else {
-          throw switchError;
-        }
-      }
     } catch (error) {
       console.error('Error connecting to MetaMask:', error);
       alert('Gagal menghubungkan MetaMask: ' + error.message);
